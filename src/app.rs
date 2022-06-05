@@ -3,6 +3,7 @@
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct TemplateApp {
     value: i32,
+    #[serde(skip)]
     amt: String
 }
 
@@ -10,7 +11,7 @@ impl Default for TemplateApp {
     fn default() -> Self {
         Self {
             value: 0,
-            amt: String::from("0"),
+            amt: String::from("1"),
         }
     }
 }
@@ -26,7 +27,7 @@ impl TemplateApp {
         if let Some(storage) = cc.storage {
             return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
         }
-
+        // cc.egui_ctx.set_visuals(egui::Visuals::dark());
         Default::default()
     }
 }
@@ -48,12 +49,16 @@ impl eframe::App for TemplateApp {
         // For inspiration and more examples, go to https://emilk.github.io/egui
 
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            // The top panel is often a good place for a menu bar:
-            egui::menu::bar(ui, |ui| {
-                ui.menu_button("File", |ui| {
-                    if ui.button("Quit").clicked() {
-                        frame.quit();
-                    }
+            ui.horizontal_centered(|ui| {
+                egui::widgets::global_dark_light_mode_switch(ui);
+                ui.separator();
+                // The top panel is often a good place for a menu bar:
+                egui::menu::bar(ui, |ui| {
+                    ui.menu_button("File", |ui| {
+                        if ui.button("Quit").clicked() {
+                            frame.quit();
+                        }
+                    });
                 });
             });
         });
@@ -79,8 +84,16 @@ impl eframe::App for TemplateApp {
                 }
                 *value -= inc;
             }
+            
 
             ui.add(egui::TextEdit::singleline(amt).hint_text("Amount to add"))
+        });
+        egui::Window::new("suffering").resizable(true).show(ctx, |ui| {
+            if ui.button("reset counter").clicked() {
+                *value = 0;
+            }
+
+            ui.allocate_space(ui.available_size());
         });
     }
 }
